@@ -42,8 +42,9 @@ if($_SESSION["simplepdo.debug"])error_log("dbexec: args=".json_encode($args));
   }
   return false;
 }
-function dbquery($query,$args=false){
+function dbquery($query,$args=false,$flag=false){
   if(!$args)$args=array();
+  if(!$flag)$flag=PDO::FETCH_NUM;
   try{
     $db=rodb();
     $db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
@@ -52,15 +53,16 @@ if($_SESSION["simplepdo.debug"])error_log("dbquery: query=\"".implode(" ",explod
 if($_SESSION["simplepdo.debug"])error_log("dbquery: args=".json_encode($args));
     $st=$db->prepare($query);
     $st->execute($args);
-    $ans=$st->fetchAll(PDO::FETCH_NUM);
+    $ans=$st->fetchAll($flag);
   }catch(PDOException $e){
     error_log("dbquery: ".$e->getMessage()." query:".$query);
     return false;
   }
   return $ans;
 }
-function roiter($query,$args=false,$callback=false){
+function roiter($query,$args=false,$callback=false,$flag=false){
   if(!$args)$args=array();
+  if(!$flag)$flag=PDO::FETCH_NUM;
   try{
     $db=rodb();
     $db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
@@ -69,7 +71,7 @@ if($_SESSION["simplepdo.debug"])error_log("roiter: query=\"".implode(" ",explode
 if($_SESSION["simplepdo.debug"])error_log("roiter: args=".json_encode($args));
     $st=$db->prepare($query);
     $st->execute($args);
-    while($row=$st->fetch(PDO::FETCH_NUM)){
+    while($row=$st->fetch($flag)){
       //error_log("roiter: row=".json_encode($row));
       if($callback){
         $callback($row);
