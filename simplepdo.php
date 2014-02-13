@@ -4,7 +4,7 @@ $_SESSION["simplepdo.debug"]=getenv("SIMPLEPDO_DEBUG");
 function rodb(){
   if(!isset($_SESSION["simplepdo.rodb"])){
     $roconn=@$_SESSION["simplepdo.roconnect"];
-    if(!$roconn)$roconn="mysql:host=localhost;dbname=wps;charset=utf8##";
+    if(!$roconn)$roconn="mysql:host=localhost;dbname=;charset=utf8##";
     list($url,$user,$pass)=explode("#",$roconn);
     $_SESSION["simplepdo.rodb"]=new PDO($url,$user,$pass,array(
 	//PDO::ATTR_PERSISTENT=>true,
@@ -17,7 +17,7 @@ function rodb(){
 function rwdb(){
   if(!isset($_SESSION["simplepdo.rwdb"])){
     $rwconn=@$_SESSION["simplepdo.rwconnect"];
-    if(!$rwconn)$rwconn="mysql:host=localhost;dbname=wps;charset=utf8##";
+    if(!$rwconn)$rwconn="mysql:host=localhost;dbname=;charset=utf8##";
     list($url,$user,$pass)=explode("#",$rwconn);
     $_SESSION["simplepdo.rwdb"]=new PDO($url,$user,$pass,array(
 	//PDO::ATTR_PERSISTENT=>true,
