@@ -83,28 +83,34 @@ if($_SESSION["simplepdo.debug"])error_log("roiter: args=".json_encode($args));
 }
 function dbprint($data,$header=false,$opt=false)
 {
-  $mar=@$opt["mar"];  // default margin
-  $sep=@$opt["sep"]; // separator
-  $vsep=@$opt["vsep"]; // vertical ( header / data ) sep
-  if(!$mar)$mar=1;
-  if(!$sep)$sep=" ";
-  if(!$vsep)$vsep="_";
+  $mar=1;  // default margin
+  $sep=" "; // separator
+  $vsp="_"; // vertical ( header / data ) sep
+  $nl="\n"; // newline
 
-  //get max width each col
-  $widths=array();
-  foreach($data as $row){
-    for($i=0;$i<count($row);$i++){
-      $w=$mar+strlen("".$row[$i]); // cell width
-      if($w>@$widths[$i]){
-	$widths[$i]=$w;
+  if(isset($opt["mar"]))$mar=$opt["mar"];
+  if(isset($opt["sep"]))$sep=$opt["sep"];
+  if(isset($opt["vsp"]))$vsp=$opt["vsp"];
+  if(isset($opt["nl"]))$nl=$opt["nl"];
+
+  $widths=array(); #if(isset($data[0]))$widths=array_fill(0,count($data[0]),0);
+
+  if($mar>0){
+    //get max width each col
+    foreach($data as $row){
+      for($i=0;$i<count($row);$i++){
+	$w=$mar+strlen("".$row[$i]); // cell width
+	if($w>@$widths[$i]){
+	  $widths[$i]=$w;
+	}
       }
     }
-  }
-  if($header){
-    for($i=0;$i<count($header);$i++){
-      $w=$mar+strlen("".$header[$i]); // header cell width
-      if($w>@$widths[$i]){
-	$widths[$i]=$w;
+    if($header){
+      for($i=0;$i<count($header);$i++){
+	$w=$mar+strlen("".$header[$i]); // header cell width
+	if($w>@$widths[$i]){
+	  $widths[$i]=$w;
+	}
       }
     }
   }
@@ -113,17 +119,17 @@ function dbprint($data,$header=false,$opt=false)
 
   //print header
   if($header){
-    $houtput=implode($sep,array_map(function($cell,$width){return str_pad($cell,$width," ",STR_PAD_RIGHT);},$header,$widths));
-    $output.=$houtput ."\n";
-    if($vsep){
-      $output.=str_pad("",strlen($houtput),$vsep) ."\n";
+    $houtput=implode($sep,array_map(function($cell,$width){return str_pad($cell,@$width," ",STR_PAD_RIGHT);},$header,$widths));
+    $output.=$houtput .$nl;
+    if($vsp){
+      $output.=str_pad("",strlen($houtput),$vsp) .$nl;
     }
   }
 
   //print data
   foreach($data as $row){
-    $doutput=implode($sep,array_map(function($cell,$width){return str_pad($cell,$width," ",STR_PAD_LEFT);},$row,$widths));
-    $output.=$doutput ."\n";
+    $doutput=implode($sep,array_map(function($cell,$width){return str_pad($cell,@$width," ",STR_PAD_LEFT);},$row,$widths));
+    $output.=$doutput .$nl;
   }
   return $output;
 }
