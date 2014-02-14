@@ -1,29 +1,35 @@
 <?php
 $_SESSION["simplepdo.debug"]=getenv("SIMPLEPDO_DEBUG");
 
-function rodb(){
+function rodb($connect=false){
+  if($connect && $connect != @$_SESSION["simplepdo.roconnect"]){
+    unset($_SESSION["simplepdo.rodb"]);
+    $_SESSION["simplepdo.roconnect"]=$connect;
+  }
   if(!isset($_SESSION["simplepdo.rodb"])){
     $roconn=@$_SESSION["simplepdo.roconnect"];
-    if(!$roconn)$roconn="mysql:host=localhost;dbname=;charset=utf8##";
+    if(!$roconn)$roconn="mysql:host=localhost;dbname=wps;charset=utf8##";
     list($url,$user,$pass)=explode("#",$roconn);
     $_SESSION["simplepdo.rodb"]=new PDO($url,$user,$pass,array(
 	//PDO::ATTR_PERSISTENT=>true,
 	PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
     ));
-    //if(ROINIT)$_SESSION["simplepdo.rodb"]->exec(ROINIT);
   }
   return $_SESSION["simplepdo.rodb"];
 }
-function rwdb(){
+function rwdb($connect=false){
+  if($connect && $connect != @$_SESSION["simplepdo.rwconnect"]){
+    unset($_SESSION["simplepdo.rwdb"]);
+    $_SESSION["simplepdo.rwconnect"]=$connect;
+  }
   if(!isset($_SESSION["simplepdo.rwdb"])){
     $rwconn=@$_SESSION["simplepdo.rwconnect"];
-    if(!$rwconn)$rwconn="mysql:host=localhost;dbname=;charset=utf8##";
+    if(!$rwconn)$rwconn="mysql:host=localhost;dbname=wps;charset=utf8##";
     list($url,$user,$pass)=explode("#",$rwconn);
     $_SESSION["simplepdo.rwdb"]=new PDO($url,$user,$pass,array(
 	//PDO::ATTR_PERSISTENT=>true,
 	PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,
     ));
-    //if(RWINIT)$_SESSION["simplepdo.rwdb"]->exec(RWINIT);
   }
   return $_SESSION["simplepdo.rwdb"];
 }
@@ -32,12 +38,10 @@ function dbexec($query,$args=false){
   for($i=1;$i<=3;$i++){
     try{
       $db=rwdb();
-if($_SESSION["simplepdo.debug"])error_log("dbexec: query=\"".implode(" ",explode("\n",$query))."\"");
-if($_SESSION["simplepdo.debug"])error_log("dbexec: args=".json_encode($args));
       $res=$db->prepare($query)->execute($args);
       if($res)return true;
     }catch(PDOException $e){
-      error_log("dbexec[".$i."]: ".$e->getMessage()." query:".$query);
+      error_log("dbexec[".$i."]: ".$e->getMessage()." query:".$query." args:".json_encode($args));
     }
   }
   return false;
@@ -48,37 +52,30 @@ function dbquery($query,$args=false,$flag=false){
   try{
     $db=rodb();
     $db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
-
-if($_SESSION["simplepdo.debug"])error_log("dbquery: query=\"".implode(" ",explode("\n",$query))."\"");
-if($_SESSION["simplepdo.debug"])error_log("dbquery: args=".json_encode($args));
     $st=$db->prepare($query);
     $st->execute($args);
     $ans=$st->fetchAll($flag);
   }catch(PDOException $e){
-    error_log("dbquery: ".$e->getMessage()." query:".$query);
+    error_log("dbquery: ".$e->getMessage()." query:".$query." args:".json_encode($args));
     return false;
   }
   return $ans;
 }
-function roiter($query,$args=false,$callback=false,$flag=false){
+function dbiter($query,$args=false,$callback=false,$flag=false){
   if(!$args)$args=array();
   if(!$flag)$flag=PDO::FETCH_NUM;
   try{
     $db=rodb();
     $db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
-
-if($_SESSION["simplepdo.debug"])error_log("roiter: query=\"".implode(" ",explode("\n",$query))."\"");
-if($_SESSION["simplepdo.debug"])error_log("roiter: args=".json_encode($args));
     $st=$db->prepare($query);
     $st->execute($args);
     while($row=$st->fetch($flag)){
-      //error_log("roiter: row=".json_encode($row));
       if($callback){
         $callback($row);
       }
     }
   }catch(PDOException $e){
-    error_log("roiter: ".$e->getMessage()." query:".$query);
+    error_log("dbiter: ".$e->getMessage()." query:".$query." args:".json_encode($args));
     return false;
   }
   return true;
