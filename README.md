@@ -9,8 +9,8 @@ Usage
     <?php
     require_once "simplepdo.php";
 
-    $_SESSION["simplepdo.rwconnect"]="mysql:host=localhost;dbname=mydb;charset=utf8#user#pass";
-    $_SESSION["simplepdo.roconnect"]="mysql:host=localhost;dbname=mydb;charset=utf8#user#pass";
+    rwdb("mysql:host=localhost;dbname=mydb;charset=utf8#user#pass");
+    rodb("mysql:host=localhost;dbname=mydb;charset=utf8#user#pass");
 
     echo dbprint(dbquery("select * from yourtable where weekday=? order by datefield desc limit 11",array("sunday")));
     echo dbprint(array(array("1234","12","11")),false,array("mar"=>0,"sep"=>"|","nl"=>""));
