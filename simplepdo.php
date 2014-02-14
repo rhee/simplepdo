@@ -34,21 +34,31 @@ function rwdb($connect=false){
   return $_SESSION["simplepdo.rwdb"];
 }
 function dbexec($query,$args=false){
+  //error_log("dbexec: ".json_encode(func_get_args()));
   if(!$args)$args=array();
+  $start=microtime(true);
   for($i=1;$i<=3;$i++){
     try{
       $db=rwdb();
       $res=$db->prepare($query)->execute($args);
-      if($res)return true;
+      $ans=!!$res;
+      break;
     }catch(PDOException $e){
-      error_log("dbexec[".$i."]: ".$e->getMessage()." query:".$query." args:".json_encode($args));
+      error_log("dbexec[".$i."]: ".$e->getMessage()." query: ".json_encode(func_get_args()));
+      $ans=false;
     }
   }
-  return false;
+  $elapsed=microtime(true)-$start;
+  if($elapsed>2.0){
+    error_log("dbexec: elapsed: ".number_format($elapsed,1)." query: ".json_encode(func_get_args()));
+  }
+  return $ans;
 }
 function dbquery($query,$args=false,$flag=false){
+  //error_log("dbquery: ".json_encode(func_get_args()));
   if(!$args)$args=array();
   if(!$flag)$flag=PDO::FETCH_NUM;
+  $start=microtime(true);
   try{
     $db=rodb();
     $db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, true);
@@ -56,14 +66,20 @@ function dbquery($query,$args=false,$flag=false){
     $st->execute($args);
     $ans=$st->fetchAll($flag);
   }catch(PDOException $e){
-    error_log("dbquery: ".$e->getMessage()." query:".$query." args:".json_encode($args));
-    return false;
+    error_log("dbquery: ".$e->getMessage()." query: ".json_encode(func_get_args()));
+    $ans=false;
+  }
+  $elapsed=microtime(true)-$start;
+  if($elapsed>2.0){
+    error_log("dbquery: elapsed: ".number_format($elapsed,1)." query: ".json_encode(func_get_args()));
   }
   return $ans;
 }
 function dbiter($query,$args=false,$callback=false,$flag=false){
+  //error_log("dbiter: ".json_encode(func_get_args()));
   if(!$args)$args=array();
   if(!$flag)$flag=PDO::FETCH_NUM;
+  $start=microtime(true);
   try{
     $db=rodb();
     $db->setAttribute(PDO::MYSQL_ATTR_USE_BUFFERED_QUERY, false);
@@ -74,11 +90,16 @@ function dbiter($query,$args=false,$callback=false,$flag=false){
         $callback($row);
       }
     }
+    $ans=true;
   }catch(PDOException $e){
-    error_log("dbiter: ".$e->getMessage()." query:".$query." args:".json_encode($args));
-    return false;
+    error_log("dbiter: ".$e->getMessage()." query: ".json_encode(func_get_args()));
+    $ans=false;
   }
-  return true;
+  $elapsed=microtime(true)-$start;
+  if($elapsed>2.0){
+    error_log("dbiter: elapsed: ".number_format($elapsed,1)." query: ".json_encode(func_get_args()));
+  }
+  return $ans;
 }
 function dbprint($data,$header=false,$opt=false)
 {
